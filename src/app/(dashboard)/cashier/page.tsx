@@ -256,10 +256,8 @@ export default function CashierPage() {
               <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Pelanggan</Label>
               {!selectedCustomer && (
                 <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
-                      <UserPlus className="w-3 h-3 mr-1" /> Baru
-                    </Button>
+                  <DialogTrigger render={<Button variant="ghost" size="sm" className="h-6 text-xs px-2" />}>
+                    <UserPlus className="w-3 h-3 mr-1" /> Baru
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
