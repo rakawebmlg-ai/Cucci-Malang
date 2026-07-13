@@ -367,11 +367,12 @@ export const useAppStore = create<AppState>()(
         if (data.total !== undefined) updatedFields.total = data.total;
         if (data.orderStatus) updatedFields.order_status = data.orderStatus;
         if (data.paymentStatus) updatedFields.payment_status = data.paymentStatus;
+        if (data.paymentMethod) updatedFields.payment_method = data.paymentMethod;
         if (data.amountPaid !== undefined) updatedFields.amount_paid = data.amountPaid;
         if (data.remaining !== undefined) updatedFields.remaining = data.remaining;
         
         supabase.from('orders').update(updatedFields).eq('id', id)
-          .then(({ error }) => { if (error) console.error('Supabase Error (updateOrder):', error); });
+          .then(({ error }) => { if (error) console.error('Supabase Error (updateOrder):', JSON.stringify(error, null, 2)); });
       },
       updateOrderStatus: (id, status, note) => {
         const currentOrders = get().orders;
