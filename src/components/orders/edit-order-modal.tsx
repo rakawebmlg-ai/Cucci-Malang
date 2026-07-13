@@ -110,7 +110,7 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
                 <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.serviceName}</p>
-                    <p className="text-xs text-muted-foreground">{item.quantity} x {formatCurrency(item.price)}</p>
+                    <p className="text-xs text-muted-foreground">{item.qty} x {formatCurrency(item.price)}</p>
                   </div>
                   <span className="font-semibold text-sm">{formatCurrency(item.subtotal)}</span>
                 </div>
