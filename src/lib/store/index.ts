@@ -169,7 +169,7 @@ export const useAppStore = create<AppState>()(
           const { data: user, error } = await supabase
             .from('users')
             .select('*')
-            .eq('email', email)
+            .ilike('email', email.trim())
             .eq('password', hashedPassword)
             .eq('status', 'active') // Or 'Aktif' depending on your data
             .single();
