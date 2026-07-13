@@ -145,7 +145,7 @@ export const useAppStore = create<AppState>()(
           if (users) {
             set({ users: users.map((u: any) => ({
               id: u.id, name: u.name, email: u.email, role: u.role,
-              isActive: u.status === 'active' || u.status === 'Aktif', createdAt: u.joined_at || new Date().toISOString()
+              isActive: u.status === 'active' || u.status === 'Aktif', createdAt: u.created_at || new Date().toISOString()
             })) });
           }
           if (settings) {
@@ -181,8 +181,8 @@ export const useAppStore = create<AppState>()(
             return false;
           }
 
-          // Update last_login timestamp
-          await supabase.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+          // Update last_login timestamp (commented out as column doesn't exist)
+          // await supabase.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
 
           set({ 
             isAuthenticated: true, 
@@ -192,7 +192,7 @@ export const useAppStore = create<AppState>()(
               email: user.email,
               role: user.role,
               isActive: true,
-              createdAt: user.joined_at || new Date().toISOString()
+              createdAt: user.created_at || new Date().toISOString()
             } 
           });
           return true;
@@ -443,7 +443,7 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ payments: [newPayment, ...state.payments] }));
         
         // Sync to Supabase
-        supabase.from('payments').insert({
+        const payload: Record<string, any> = {
           id: newPayment.id,
           order_id: newPayment.orderId,
           invoice_number: newPayment.invoiceNumber,
@@ -452,8 +452,22 @@ export const useAppStore = create<AppState>()(
           method: newPayment.method,
           status: newPayment.status,
           date: newPayment.date,
-          note: newPayment.note
-        }).then(({ error }) => { if (error) console.error('Supabase Error (addPayment):', error); });
+        };
+        if (newPayment.note) payload.note = newPayment.note;
+
+        supabase.from('payments').insert(payload).then(({ error }) => { 
+          if (error) {
+            // If the error is about a missing note column, retry without note
+            if (error.message && error.message.includes('note')) {
+              delete payload.note;
+              supabase.from('payments').insert(payload).then(({ error: retryError }) => {
+                if (retryError) console.error('Supabase Error (addPayment retry):', retryError);
+              });
+            } else {
+              console.error('Supabase Error (addPayment):', JSON.stringify(error, null, 2)); 
+            }
+          }
+        });
       },
       updatePayment: (id, data) => {
         set((state) => ({
@@ -468,7 +482,18 @@ export const useAppStore = create<AppState>()(
         if (data.note !== undefined) updatePayload.note = data.note;
 
         supabase.from('payments').update(updatePayload).eq('id', id)
-          .then(({ error }) => { if (error) console.error('Supabase Error (updatePayment):', error); });
+          .then(({ error }) => { 
+            if (error) {
+              if (error.message && error.message.includes('note')) {
+                delete updatePayload.note;
+                supabase.from('payments').update(updatePayload).eq('id', id).then(({ error: retryError }) => {
+                  if (retryError) console.error('Supabase Error (updatePayment retry):', retryError);
+                });
+              } else {
+                console.error('Supabase Error (updatePayment):', JSON.stringify(error, null, 2)); 
+              }
+            }
+          });
       },
       deletePayment: (id) => {
         set((state) => ({
@@ -487,32 +512,32 @@ export const useAppStore = create<AppState>()(
         }));
         supabase.from('expenses').insert({
           id: newExpense.id,
-          description: newExpense.name,
+          name: newExpense.name,
           amount: newExpense.amount,
           category: newExpense.category,
           date: newExpense.date,
-          notes: newExpense.note || '',
-        }).then(({ error }) => { if (error) console.error('Supabase Error (addExpense):', error); });
+          note: newExpense.note || '',
+        }).then(({ error }) => { if (error) console.error('Supabase Error (addExpense):', JSON.stringify(error, null, 2)); });
       },
       updateExpense: (id, data) => {
         set((state) => ({
           expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...data } : e)),
         }));
         const updatePayload: Record<string, any> = {};
-        if (data.name) updatePayload.description = data.name;
+        if (data.name) updatePayload.name = data.name;
         if (data.amount !== undefined) updatePayload.amount = data.amount;
         if (data.category) updatePayload.category = data.category;
         if (data.date) updatePayload.date = data.date;
-        if (data.note !== undefined) updatePayload.notes = data.note;
+        if (data.note !== undefined) updatePayload.note = data.note;
         supabase.from('expenses').update(updatePayload).eq('id', id)
-          .then(({ error }) => { if (error) console.error('Supabase Error (updateExpense):', error); });
+          .then(({ error }) => { if (error) console.error('Supabase Error (updateExpense):', JSON.stringify(error, null, 2)); });
       },
       deleteExpense: (id) => {
         set((state) => ({
           expenses: state.expenses.filter((e) => e.id !== id),
         }));
         supabase.from('expenses').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('Supabase Error (deleteExpense):', error); });
+          .then(({ error }) => { if (error) console.error('Supabase Error (deleteExpense):', JSON.stringify(error, null, 2)); });
       },
 
       // Users
@@ -538,11 +563,11 @@ export const useAppStore = create<AppState>()(
             email: newUser.email,
             role: newUser.role,
             status: newUser.isActive ? 'active' : 'inactive',
-            joined_at: newUser.createdAt,
+            created_at: newUser.createdAt,
             password: hashedPassword
           });
         } catch (error) {
-          console.error('Supabase Error (addUser):', error);
+          console.error('Supabase Error (addUser):', JSON.stringify(error, null, 2));
         }
       },
       updateUser: async (id, data, newPassword) => {

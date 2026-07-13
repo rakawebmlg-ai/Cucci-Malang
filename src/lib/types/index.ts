@@ -9,6 +9,7 @@ export type OrderStatus =
   | 'finishing'
   | 'qc'
   | 'siap_diambil'
+  | 'siap_diantar'
   | 'selesai'
   | 'sudah_diambil';
 
@@ -155,6 +156,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   finishing: 'Finishing',
   qc: 'Quality Control',
   siap_diambil: 'Siap Diambil',
+  siap_diantar: 'Siap Diantar',
   selesai: 'Selesai',
   sudah_diambil: 'Sudah Diambil',
 };
@@ -180,10 +182,11 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   dicuci: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
   pengeringan: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   finishing: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  qc: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  qc: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
   siap_diambil: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  selesai: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  sudah_diambil: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+  siap_diantar: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+  selesai: 'bg-success text-success-foreground',
+  sudah_diambil: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 };
 
 export const PAYMENT_STATUS_COLORS: Record<PaymentStatus, string> = {

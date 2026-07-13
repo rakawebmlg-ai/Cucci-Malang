@@ -38,7 +38,7 @@ export function StatCards() {
     });
     
     const inProgress = orders.filter((o) => ['baru', 'dicuci', 'pengeringan', 'finishing', 'qc'].includes(o.orderStatus));
-    const readyForPickup = orders.filter((o) => o.orderStatus === 'siap_diambil');
+    const readyForPickup = orders.filter((o) => ['siap_diambil', 'siap_diantar'].includes(o.orderStatus));
     const completed = orders.filter((o) => ['selesai', 'sudah_diambil'].includes(o.orderStatus));
 
     const revenueToday = ordersToday.reduce((acc, o) => acc + o.amountPaid, 0);

@@ -14,17 +14,25 @@ export function RecentActivity() {
   const orders = useAppStore((s) => s.orders);
   const payments = useAppStore((s) => s.payments);
 
-  // Get 5 most recent activities (mix of orders and payments)
+  // Get most recent activities (mix of orders and payments)
+  const sortedOrders = [...orders].sort((a, b) => 
+    new Date(b.updatedAt || b.orderDate).getTime() - new Date(a.updatedAt || a.orderDate).getTime()
+  );
+
   const activities = [
-    ...orders.slice(0, 5).map((o) => ({
-      id: `act-ord-${o.id}`,
-      type: 'order' as const,
-      title: 'Order Baru Masuk',
-      description: `${o.customerName} - ${o.invoiceNumber}`,
-      amount: o.total,
-      date: o.orderDate,
-      status: o.orderStatus,
-    })),
+    ...sortedOrders.slice(0, 5).map((o) => {
+      // If updatedAt is more than 5 seconds after orderDate, consider it an update
+      const isUpdate = o.updatedAt && new Date(o.updatedAt).getTime() - new Date(o.orderDate).getTime() > 5000;
+      return {
+        id: `act-ord-${o.id}-${o.updatedAt || o.orderDate}`,
+        type: 'order' as const,
+        title: isUpdate ? 'Pembaruan Data Order' : 'Order Baru Masuk',
+        description: `${o.customerName} - ${o.invoiceNumber}`,
+        amount: o.total,
+        date: o.updatedAt || o.orderDate,
+        status: o.orderStatus,
+      };
+    }),
     ...payments.slice(0, 5).map((p) => ({
       id: `act-pay-${p.id}`,
       type: 'payment' as const,

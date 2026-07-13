@@ -14,7 +14,10 @@ import {
   Eye, 
   Copy,
   Check,
-  ChevronDown
+  ChevronDown,
+  Edit,
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 import {
   Dialog,
@@ -34,6 +37,8 @@ import { useReactToPrint } from 'react-to-print';
 import { useSearchParams } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { EditOrderModal } from '@/components/orders/edit-order-modal';
+import { DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
 export default function InvoicesPage() {
   const orders = useAppStore((s) => s.orders);
@@ -48,7 +53,10 @@ export default function InvoicesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [printType, setPrintType] = useState<'a4' | 'thermal80' | 'thermal58'>('a4');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const deleteOrder = useAppStore((s) => s.deleteOrder);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -139,6 +147,14 @@ export default function InvoicesPage() {
     }
   };
 
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteOrder(deleteId);
+      toast.success('Invoice/Order berhasil dihapus');
+      setDeleteId(null);
+    }
+  };
+
   const columns: ColumnDef<Order>[] = [
     {
       accessorKey: 'invoiceNumber',
@@ -189,18 +205,32 @@ export default function InvoicesPage() {
       cell: ({ row }) => {
         const order = row.original;
         return (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => openPreview(order)}>
-              <Eye className="w-4 h-4 mr-2" />
-              Lihat
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => openPreview(order)} title="Lihat">
+              <Eye className="w-4 h-4" />
             </Button>
-            <Button variant="default" size="sm" onClick={() => {
+            <Button variant="default" size="icon" className="h-8 w-8" onClick={() => {
               setSelectedOrder(order);
-              setPrintType('thermal80'); // Default to thermal for quick print
-              setTimeout(() => handlePrint(), 100);
-            }}>
+              setPrintType('thermal80');
+              setPreviewOpen(true);
+              setTimeout(() => handlePrint(), 500);
+            }} title="Cetak">
               <Printer className="w-4 h-4" />
             </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
+                <MoreVertical className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => { setSelectedOrder(order); setIsEditOpen(true); }}>
+                  <Edit className="w-4 h-4 mr-2" /> Edit Data
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteId(order.id)}>
+                  <Trash2 className="w-4 h-4 mr-2" /> Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
       },
@@ -266,6 +296,29 @@ export default function InvoicesPage() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Order Modal */}
+      <EditOrderModal 
+        order={selectedOrder} 
+        isOpen={isEditOpen} 
+        onClose={() => setIsEditOpen(false)} 
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Invoice/Order?</DialogTitle>
+            <DialogDescription>
+              Tindakan ini akan menghapus data order secara permanen dari sistem.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
+            <Button variant="destructive" onClick={handleDelete}>Ya, Hapus</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

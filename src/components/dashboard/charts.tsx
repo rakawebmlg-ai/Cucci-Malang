@@ -75,6 +75,7 @@ export function DashboardCharts() {
         o.orderStatus === 'finishing' ? 'Finishing' :
         o.orderStatus === 'qc' ? 'QC' :
         o.orderStatus === 'siap_diambil' ? 'Siap Diambil' :
+        o.orderStatus === 'siap_diantar' ? 'Siap Diantar' :
         o.orderStatus === 'selesai' ? 'Selesai' : 'Sudah Diambil';
       statusCount[label] = (statusCount[label] || 0) + 1;
     });

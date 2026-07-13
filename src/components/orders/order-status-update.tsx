@@ -36,6 +36,7 @@ const statusOrder: OrderStatus[] = [
   'finishing',
   'qc',
   'siap_diambil',
+  'siap_diantar',
   'selesai',
   'sudah_diambil',
 ];

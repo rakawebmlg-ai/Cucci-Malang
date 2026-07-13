@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { formatCurrency, formatDateTime } from '@/lib/utils/format';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Eye, Plus, MoreHorizontal, Printer, Trash2, CalendarDays } from 'lucide-react';
+import { Eye, Plus, MoreHorizontal, Printer, Trash2, CalendarDays, Edit } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -35,8 +35,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { EditOrderModal } from '@/components/orders/edit-order-modal';
 
 export default function OrdersPage() {
   const orders = useAppStore((s) => s.orders);
@@ -45,6 +46,8 @@ export default function OrdersPage() {
   const router = useRouter();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Filters state
   const [serviceFilter, setServiceFilter] = useState<string>('');
@@ -179,6 +182,10 @@ export default function OrdersPage() {
                 <Eye className="w-4 h-4 mr-2" />
                 Lihat Detail
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setSelectedOrder(order); setIsEditOpen(true); }}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Data
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toast.info('Fitur cetak akan segera tersedia')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Cetak Invoice
@@ -283,6 +290,12 @@ export default function OrdersPage() {
             )}
           </>
         }
+      />
+
+      <EditOrderModal 
+        order={selectedOrder} 
+        isOpen={isEditOpen} 
+        onClose={() => setIsEditOpen(false)} 
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
