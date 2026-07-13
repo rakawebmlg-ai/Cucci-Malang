@@ -59,6 +59,8 @@ interface AppState {
   // Payments
   payments: Payment[];
   addPayment: (payment: Omit<Payment, 'id'>) => void;
+  updatePayment: (id: string, data: Partial<Payment>) => void;
+  deletePayment: (id: string) => void;
 
   // Expenses
   expenses: Expense[];
@@ -449,8 +451,31 @@ export const useAppStore = create<AppState>()(
           amount: newPayment.amount,
           method: newPayment.method,
           status: newPayment.status,
-          date: newPayment.date
+          date: newPayment.date,
+          note: newPayment.note
         }).then(({ error }) => { if (error) console.error('Supabase Error (addPayment):', error); });
+      },
+      updatePayment: (id, data) => {
+        set((state) => ({
+          payments: state.payments.map((p) => (p.id === id ? { ...p, ...data } : p)),
+        }));
+        
+        const updatePayload: Record<string, any> = {};
+        if (data.amount !== undefined) updatePayload.amount = data.amount;
+        if (data.method !== undefined) updatePayload.method = data.method;
+        if (data.status !== undefined) updatePayload.status = data.status;
+        if (data.date !== undefined) updatePayload.date = data.date;
+        if (data.note !== undefined) updatePayload.note = data.note;
+
+        supabase.from('payments').update(updatePayload).eq('id', id)
+          .then(({ error }) => { if (error) console.error('Supabase Error (updatePayment):', error); });
+      },
+      deletePayment: (id) => {
+        set((state) => ({
+          payments: state.payments.filter((p) => p.id !== id),
+        }));
+        supabase.from('payments').delete().eq('id', id)
+          .then(({ error }) => { if (error) console.error('Supabase Error (deletePayment):', error); });
       },
 
       // Expenses
