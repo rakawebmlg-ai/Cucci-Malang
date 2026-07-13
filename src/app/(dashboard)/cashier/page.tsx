@@ -39,6 +39,7 @@ export default function CashierPage() {
   const customers = useAppStore((s) => s.customers);
   const addOrder = useAppStore((s) => s.addOrder);
   const addPayment = useAppStore((s) => s.addPayment);
+  const addCustomer = useAppStore((s) => s.addCustomer);
 
   // POS State
   const [cart, setCart] = useState<OrderItem[]>([]);
@@ -59,6 +60,8 @@ export default function CashierPage() {
   const [amountPaid, setAmountPaid] = useState<number | ''>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tunai');
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
+  const [newCustomerForm, setNewCustomerForm] = useState({ name: '', whatsapp: '', address: '' });
 
   // Calculations
   const subtotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
@@ -128,6 +131,18 @@ export default function CashierPage() {
     }
     
     setIsConfirmOpen(true);
+  };
+
+  const handleAddNewCustomer = () => {
+    if (!newCustomerForm.name || !newCustomerForm.whatsapp) {
+      toast.error('Nama dan WhatsApp wajib diisi');
+      return;
+    }
+    const created = addCustomer(newCustomerForm);
+    setSelectedCustomer(created);
+    setIsNewCustomerOpen(false);
+    setNewCustomerForm({ name: '', whatsapp: '', address: '' });
+    toast.success('Pelanggan baru berhasil ditambahkan');
   };
 
   const confirmOrder = () => {
@@ -240,9 +255,54 @@ export default function CashierPage() {
             <div className="flex items-center justify-between mb-2">
               <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Pelanggan</Label>
               {!selectedCustomer && (
-                <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => router.push('/customers')}>
-                  <UserPlus className="w-3 h-3 mr-1" /> Baru
-                </Button>
+                <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
+                      <UserPlus className="w-3 h-3 mr-1" /> Baru
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Tambah Pelanggan Baru</DialogTitle>
+                      <DialogDescription>
+                        Data pelanggan akan langsung tersimpan dan dipilih untuk transaksi ini.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="c-name">Nama Lengkap *</Label>
+                        <Input
+                          id="c-name"
+                          value={newCustomerForm.name}
+                          onChange={(e) => setNewCustomerForm({ ...newCustomerForm, name: e.target.value })}
+                          placeholder="Masukkan nama"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="c-wa">WhatsApp *</Label>
+                        <Input
+                          id="c-wa"
+                          value={newCustomerForm.whatsapp}
+                          onChange={(e) => setNewCustomerForm({ ...newCustomerForm, whatsapp: e.target.value })}
+                          placeholder="08..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="c-address">Alamat (Opsional)</Label>
+                        <Input
+                          id="c-address"
+                          value={newCustomerForm.address}
+                          onChange={(e) => setNewCustomerForm({ ...newCustomerForm, address: e.target.value })}
+                          placeholder="Alamat lengkap"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsNewCustomerOpen(false)}>Batal</Button>
+                      <Button onClick={handleAddNewCustomer}>Simpan & Pilih</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
             
