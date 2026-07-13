@@ -429,12 +429,21 @@ export const useAppStore = create<AppState>()(
             }
           });
       },
-      deleteOrder: (id) => {
+      deleteOrder: async (id) => {
         set((state) => ({
           orders: state.orders.filter((o) => o.id !== id),
+          payments: state.payments.filter((p) => p.orderId !== id),
         }));
-        supabase.from('orders').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('Supabase Error (deleteOrder):', error); });
+        
+        try {
+          // Delete associated payments first to avoid foreign key constraints
+          await supabase.from('payments').delete().eq('order_id', id);
+          
+          const { error } = await supabase.from('orders').delete().eq('id', id);
+          if (error) console.error('Supabase Error (deleteOrder):', JSON.stringify(error, null, 2));
+        } catch (error) {
+          console.error('Unexpected Error (deleteOrder):', error);
+        }
       },
 
       // Payments
